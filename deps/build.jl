@@ -39,4 +39,4 @@ end
 
 buildsh = joinpath(@__DIR__, "build.sh")
 ENV["PYTHON"] = python
-bash(`bash $buildsh`)
+run(`bash $buildsh`)
