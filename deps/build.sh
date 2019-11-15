@@ -1,11 +1,14 @@
 #!/bin/bash
+CWD=$(pwd)
 BIN=$(pwd)/usr/bin
 LGBM=$(pwd)/usr/lightgbm
 CUDA=$(pwd)/usr/cuda
 BOOST=$(pwd)/usr/boost
 mkdir -p $BIN
 
-alias proxychains=''
+if [ -z "$(which proxychains)" ]; then
+    alias proxychains=''
+fi
 
 if [ -z "$PYTHON" ]; then
     PYTHON=$(which python3)
@@ -36,21 +39,21 @@ fi
 
 if [[ ! -d $BOOST ]]; then
     proxychains wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
-    tar -zxvf boost_1_66_0.tar.gz && rm boost*.tar.gz
-    cd boost_1_66_0 && ./bootstrap.sh --prefix=$BOOST && \
-    ./b2 install && cd .. && \rm -rf boost_1_66_0
+    tar -zxvf boost_1_66_0.tar.gz && \rm boost*.tar.gz
+    cd boost_1_66_0 && ./bootstrap.sh --prefix=$BOOST && ./b2 install
+    cd $CWD && \rm -rf boost_1_66_0
 fi
 
 if [[ ! -f $BIN/lightgbm ]]; then
     git clone --recursive https://github.com/Microsoft/LightGBM
     cd LightGBM && mkdir -p build && cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=$BIN \
+    cmake .. -DCMAKE_INSTALL_PREFIX=$LGBM \
             -DUSE_MPI=ON -DUSE_GPU=1 \
             -DBOOST_ROOT=$BOOST \
             -DOpenCL_LIBRARY=$CUDA/lib64/libOpenCL.so \
             -DOpenCL_INCLUDE_DIR=$CUDA/include/
     make -j4 && make install && cd ..
     cd python-package && $PYTHON setup.py install --precompile -O2
-    cd .. && \rm -rf LightGBM
     ln -s $LGBM/bin/lightgbm $BIN/lightgbm
+    cd $CWD && \rm -rf LightGBM
 fi
