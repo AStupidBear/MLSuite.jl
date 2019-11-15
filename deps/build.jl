@@ -1,4 +1,4 @@
-using BinDeps, PyCall
+using Pkg, BinDeps, PyCall
 using PyCall: python, conda, Conda
 using BinDeps: generate_steps, getallproviders, lower, PackageManager
 
