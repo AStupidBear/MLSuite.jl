@@ -23,7 +23,7 @@ regressors = [
     ScikitRegressor(name = "kernelridge"),
     ScikitRegressor(name = "knn"),
     ScikitRegressor(name = "linearsvr"),
-    ScikitRegressor(name = "thundersvr"),
+    ScikitRegressor(name = "svr"),
     ScikitRegressor(name = "mlp"),
     ScikitRegressor(name = "lightgbm"),
     H2oRegressor(name = "glm"),
@@ -37,7 +37,7 @@ regressors = [
     GbmRegressor(name = "xgboost"),
     GbmRegressor(name = "catboost"),
     LgbmRegressor(warm_start = false),
-    LgbmClassifier(warm_start = true)
+    LgbmRegressor(warm_start = true)
 ]
 
 for model in regressors
@@ -45,14 +45,14 @@ for model in regressors
     MLSuite.fit!(model, x, y, w)
     ŷ = MLSuite.predict(model, x)
     r2 = r2_score(vec(ŷ), vec(y))
-    @test r2 > 0.6
+    @test r2 > 0.5
 end
 
 classifiers = [
     VWClassifier(),
     ScikitClassifier(name = "logistic"),
     ScikitClassifier(name = "linearsvc"),
-    ScikitClassifier(name = "thundersvc"),
+    ScikitClassifier(name = "svc"),
     ScikitClassifier(name = "mlp"),
     H2oClassifier(name = "glm"),
     H2oClassifier(name = "psvm"),
@@ -78,6 +78,3 @@ for binary in [true, false], model in classifiers
     acc = accuracy_score(vec(ŷ), vec(y′))
     @assert acc > 0.7
 end
-
-# model = DaiRegressor()
-# MLSuite.fit!(model, x, y, w)

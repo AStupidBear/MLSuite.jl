@@ -47,7 +47,7 @@ function predict_vw(m::VWModel, x)
     @unpack vw, link = m
     write("vw", vw)
     dst = tovw(x, shuffle = false)
-    run(`vw $dst -t -i vw -p preds --link $link`)
+    run(`$VW $dst -t -i vw -p preds --link $link`)
     ŷ = readdlm("preds", Float32)
     foreach(rm, [dst, "vw", "preds"])
     return ŷ
@@ -73,7 +73,7 @@ function tovw(x, y = nothing, w = nothing; shuffle = false)
         dst = @sprintf("/dev/shm/%s.vw", randstring())
         h5save(h5, (x = x, y = y, w = w))
         hdf2vw = joinpath(@__DIR__, "hdf2vw.jl")
-        run(`julia --startup-file=no -p 10 $hdf2vw
+        run(`$JULIA --startup-file=no -p 10 $hdf2vw
             --shuffle $shuffle --dst $dst $h5`)
         rm(h5, force = true)
     else

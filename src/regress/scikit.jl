@@ -32,7 +32,7 @@ function paramgrid(m::ScikitRegressor)
     )
     grid["knn"] = OrderedDict("n_neighbors" => [10, 100, 1000])
     grid["linearsvr"] = grid["ridge"]
-    grid["thundersvr"] = grid["kernelridge"]
+    grid["svr"] = grid["kernelridge"]
     grid["mlp"] = OrderedDict(
         "num_layers" => [1, 2],
         "hidden_size" => [10, 100],
@@ -46,7 +46,7 @@ function paramgrid(m::ScikitRegressor)
         "subsample" => [1, 0.8],
         "colsample_bytree" => [1, 0.8],
     )
-    params = map(["lightgbm", "ridge", "mlp", "thundersvr"]) do name
+    params = map(["lightgbm", "ridge", "mlp", "svr"]) do name
         dict = Dict("name" => [name])
         paramgrid(merge(dict, grid[name]))
     end
@@ -79,7 +79,7 @@ function fit!(m::ScikitRegressor, x, y, w = nothing; columns = string.(1:size(x,
     elseif name == "linearsvr"
         @from sklearn.svm imports LinearSVR
         pyo = LinearSVR(dual = false, C = 0.5 / alpha, loss = "squared_epsilon_insensitive")
-    elseif name == "thundersvr"
+    elseif name == "svr"
         @from thundersvm imports SVR
         pyo = SVR(kernel = kernel, C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma, n_jobs = 20)
     elseif name == "mlp"
@@ -118,7 +118,7 @@ function fit!(m::ScikitRegressor, x, y, w = nothing; columns = string.(1:size(x,
         @from autosklearn.regression imports AutoSklearnRegressor
         AutoSklearnRegressor(resampling_strategy = "cv", resampling_strategy_arguments = Dict("folds" => 5))
     end
-    if name ∈ ["mlp", "thundersvr", "lasso", "lassocv", "knn"]
+    if name ∈ ["mlp", "svr", "lasso", "lassocv", "knn"]
         pyo.fit(x, y)
     elseif name != "lightgbm"
         pyo.fit(x, y, sample_weight = w)

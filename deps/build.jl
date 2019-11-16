@@ -25,9 +25,11 @@ git = library_dependency("git")
 make = library_dependency("make")
 cmake = library_dependency("cmake")
 gcc = library_dependency("gcc")
+jre = library_dependency("jre")
 
-provides(AptGet, Dict("wget" => wget, "git" => git, "make" => make, "cmake" => cmake, "g++" => gcc))
-provides(Yum, Dict("wget" => wget, "git" => git, "make" => make, "cmake" => cmake, "gcc-c++" => gcc))
+common = Dict("wget" => wget, "git" => git, "make" => make, "cmake" => cmake)
+provides(AptGet, Dict(common..., "g++" => gcc, "default-jre" => jre))
+provides(Yum, Dict(common..., "gcc-c++" => gcc,  "java-1.8.0-openjdk" => jre))
 
 for dep in bindeps_context.deps
     dp, opts = getallproviders(dep, PackageManager)[1]

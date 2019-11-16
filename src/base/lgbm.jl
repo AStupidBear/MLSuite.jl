@@ -61,7 +61,11 @@ function fit!(m::LgbmModel, x, y, w = nothing; columns = string.(1:size(x, 1)))
     push!(args, "reg_lambda=$reg_lambda")
     push!(args, "subsample=$subsample")
     push!(args, "colsample_bytree=$colsample_bytree")
-    @time run(`mpirun --host $hosts $LIGHTGBM $args`)
+    if isnothing(Sys.which("mpiexec"))
+        run(`$LIGHTGBM $args`)
+    else
+        run(`mpiexec --host $hosts $LIGHTGBM $args`)
+    end
     @from lightgbm imports Booster
     @from treelite imports Model
     pyo = Booster(model_file = "lgbm")

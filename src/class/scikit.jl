@@ -26,7 +26,7 @@ function paramgrid(m::ScikitClassifier)
         "penalty" => ["l2", "l1"],
         "loss" => ["hinge", "squared_hinge"]
     )
-    grid["thundersvc"] = OrderedDict(
+    grid["svc"] = OrderedDict(
         "alpha" => [0.001, 0.01, 0.1, 1, 5, 10, 20, 50],
         "gamma" => [0, 0.01, 0.1, 1, 10, 100]
     )
@@ -56,21 +56,23 @@ function fit!(m::ScikitClassifier, x, y, w = nothing; columns = string.(1:size(x
     elseif name == "linearsvc"
         @from sklearn.svm imports LinearSVC
         pyo = LinearSVC(dual = loss == "hinge", C = 1 / alpha, penalty = penalty, loss = loss, verbose = true)
-    elseif name == "thundersvc"
-        @from thundersvm imports SVC
-        pyo = SVC(C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma, n_jobs = 20, verbose = true)
+    elseif name == "svc"
+        use_thunder = true
+        try
+            @from thundersvm imports SVC
+            pyo = SVC(C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma, n_jobs = 20, verbose = true)
+        catch e
+            use_thunder = false
+            @from sklearn.svm imports SVC
+            pyo = SVC(C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma, verbose = true)
+        end
     elseif name == "mlp"
         @from sklearn.neural_network imports MLPClassifier
         pyo = MLPClassifier(alpha = alpha, learning_rate_init = lr, verbose = true,
                         hidden_layer_sizes = ntuple(i -> hidden_size, num_layers))
     end
-    if name == "thundersvc" || name == "mlp"
+    if name == "svc" && use_thunder || name == "mlp"
         pyo.fit(x, y)
-    elseif name == "linearsvc"
-        @from sklearn.calibration imports CalibratedClassifierCV
-        pyo.fit(x, y, sample_weight = w)
-        pyo = CalibratedClassifierCV(pyo, cv = "prefit")
-        pyo.fit(x, y, sample_weight = w)
     else
         pyo.fit(x, y, sample_weight = w)
     end
@@ -81,7 +83,7 @@ end
 
 function predict_proba(m::ScikitClassifier, x)
     @unpack name, pyo = m
-    if name == "thundersvc"
+    if occursin("svc", name)
         pyo.decision_function(pymat(x))
     else
         pyo.predict_proba(pymat(x))

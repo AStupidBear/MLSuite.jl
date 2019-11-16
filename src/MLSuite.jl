@@ -13,6 +13,7 @@ istree(m::BaseEstimator) = false
 isrnn(m::BaseEstimator) = false
 support_multiclass(m::BaseEstimator) = is_classifier(m)
 
+const JULIA = joinpath(Sys.BINDIR, Base.julia_exename())
 const VW = joinpath(@__DIR__, "../deps/usr/bin/vw")
 const VW_VARINFO = joinpath(@__DIR__, "../deps/usr/bin/vw-varinfo")
 const SVM_RANK_LEARN = joinpath(@__DIR__, "../deps/usr/bin/svm_rank_learn")
