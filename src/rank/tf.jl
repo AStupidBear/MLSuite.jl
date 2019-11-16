@@ -1,5 +1,7 @@
 export TfRanker
 
+using PyCall: python
+
 @with_kw mutable struct TfRanker <: BaseEstimator
     tf::Dict{String, Vector{UInt8}} = Dict()
     nstep::Int = 1000
@@ -72,7 +74,7 @@ function rankcmd(m::TfRanker, dst, out; predonly = false)
         ENV["OMP_NUM_THREADS"] = 20
     end
     tfrank = joinpath(@__DIR__, "tfrank.py")
-    `python $tfrank
+    `$python $tfrank
     --train_path=$dst
     --vali_path=$dst
     --test_path=$dst
