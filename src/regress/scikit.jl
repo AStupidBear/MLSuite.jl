@@ -80,8 +80,15 @@ function fit!(m::ScikitRegressor, x, y, w = nothing; columns = string.(1:size(x,
         @from sklearn.svm imports LinearSVR
         pyo = LinearSVR(dual = false, C = 0.5 / alpha, loss = "squared_epsilon_insensitive")
     elseif name == "svr"
-        @from thundersvm imports SVR
-        pyo = SVR(kernel = kernel, C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma, n_jobs = 20)
+        use_thunder = true
+        try
+            @from thundersvm imports SVR
+            pyo = SVR(kernel = kernel, C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma, n_jobs = 20)
+        catch e
+            use_thunder = false
+            @from sklearn.svm imports SVR
+            pyo = SVR(kernel = kernel, C = 0.5 / alpha, gamma = gamma == 0 ? "auto" : gamma)
+        end
     elseif name == "mlp"
         @from sklearn.neural_network imports MLPRegressor
         pyo = MLPRegressor(
@@ -118,7 +125,7 @@ function fit!(m::ScikitRegressor, x, y, w = nothing; columns = string.(1:size(x,
         @from autosklearn.regression imports AutoSklearnRegressor
         AutoSklearnRegressor(resampling_strategy = "cv", resampling_strategy_arguments = Dict("folds" => 5))
     end
-    if name ∈ ["mlp", "svr", "lasso", "lassocv", "knn"]
+    if name == "svr" && use_thunder || occursin(r"mlp|lasso|knn", name)
         pyo.fit(x, y)
     elseif name != "lightgbm"
         pyo.fit(x, y, sample_weight = w)
