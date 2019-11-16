@@ -11,7 +11,7 @@ if conda && Conda.version("python") >= v"3.7"
 end
 
 run(`$python -m pip install scikit-learn pandas h2o lightgbm xgboost unidecode pyarrow thundersvm treelite`)
-run(`$python -m pip install catboost==0.16.5 tensorflow-ranking==0.1 tensorflow==1.12`)
+run(`$python -m pip install catboost==0.16.5 tensorflow-ranking==0.1.2 tensorflow==1.12`)
 
 if isnothing(Sys.which("sudo")) # in docker
     try run(`apt update`) catch end

@@ -13,8 +13,6 @@ is_ranker(::SvmRanker) = true
 function paramgrid(m::SvmRanker)
     grid = OrderedDict(
         "c" => [0.01, 0.1, 1, 10, 100],
-        "p" => [1, 2],
-        "o" => [2, 1]
     )
     params = paramgrid(grid)
 end

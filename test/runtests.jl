@@ -68,7 +68,7 @@ classifiers = [
     GbmClassifier(name = "lightgbm"),
     GbmClassifier(name = "xgboost"),
     GbmClassifier(name = "catboost"),
-    LgbmClassifier(),
+    LgbmClassifier()
 ]
 
 for binary in [true, false], model in classifiers
@@ -83,17 +83,14 @@ for binary in [true, false], model in classifiers
 end
 
 rankers = [
-    SvmRanker(p = 1, o = 1),
-    SvmRanker(p = 1, o = 2),
-    SvmRanker(p = 2, o = 1),
-    SvmRanker(p = 2, o = 1),
+    SvmRanker(),
     TfRanker(loss = "pairwise_hinge_loss"),
     TfRanker(loss = "pairwise_soft_zero_one_loss"),
     TfRanker(loss = "softmax_loss"),
     TfRanker(loss = "sigmoid_cross_entropy_loss"),
     TfRanker(loss = "mean_squared_loss"),
     TfRanker(loss = "list_mle_loss"),
-    TfRanker(loss = "approx_ndcg_loss")],
+    TfRanker(loss = "approx_ndcg_loss"),
     RanklibRanker(ranker = 0),
     RanklibRanker(ranker = 1),
     RanklibRanker(ranker = 2),
@@ -107,7 +104,6 @@ rankers = [
     RanklibRanker(ranker = 4, metric2t = "P@50"),
     RanklibRanker(ranker = 4, metric2t = "RR@50"),
     RanklibRanker(ranker = 4, metric2t = "ERR@50"),
-    RanklibRanker(ranker = 5, metric2t = "NDCG@50"),
     RanklibRanker(ranker = 6, metric2t = "NDCG@50"),
     RanklibRanker(ranker = 6, metric2t = "DCG@50"),
     RanklibRanker(ranker = 6, metric2t = "P@50"),
@@ -117,7 +113,7 @@ rankers = [
     RanklibRanker(ranker = 8),
     GbmRanker(name = "lightgbm", objective = "rank:ndcg"),
     GbmRanker(name = "xgboost", objective = "rank:pairwise"),
-    GbmRanker(name = "catboost", objective = "rank:pairlogit"),
+    GbmRanker(name = "catboost", objective = "rank:pairlogit")
 ]
 
 for model in rankers

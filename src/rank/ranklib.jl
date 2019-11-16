@@ -11,7 +11,7 @@ is_ranker(::RanklibRanker) = true
 
 function paramgrid(m::RanklibRanker)
     grid = OrderedDict(
-        "ranker" => 0:8,
+        "ranker" => [0:4; 6:8],
         "metric2t" =>
         ["MAP"; ["$s@$k" for k in [20, 50, 100]
         for s in split("NDCG DCG P RR ERR")]]
