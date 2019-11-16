@@ -28,7 +28,8 @@ function paramgrid(m::LgbmModel)
     params = paramgrid(grid)
 end
 
-function fit!(m::LgbmModel, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::LgbmModel, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     @unpack max_bin, objective, warm_start, num_leaves, min_child_samples = m
     @unpack n_estimators, reg_lambda, subsample, colsample_bytree = m
     dump_lgbm_data(x, y, w, max_bin = max_bin, columns = columns)

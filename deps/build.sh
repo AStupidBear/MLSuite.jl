@@ -12,7 +12,7 @@ else
     USE_GPU=0
 fi
 
-if mpiexec &> /dev/null; then
+if mpiexec --help &> /dev/null; then
     USE_MPI=1
 else
     USE_MPI=0
@@ -56,13 +56,14 @@ if [ ! -d $BOOST ] && [ $USE_GPU == 1 ]; then
     cd $CWD && \rm -rf boost_1_66_0
 fi
 
-if [ ! -f $BIN/lightgbm ]; then
+if [ ! -f $LGBM/bin/lightgbm ]; then
     git clone --recursive https://github.com/Microsoft/LightGBM
     cd LightGBM && mkdir -p build && cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=$LGBM \
             -DUSE_MPI=$USE_MPI \
             -DUSE_GPU=$USE_GPU \
-            -DBOOST_ROOT=$BOOST \
+            -DBOOST_LIBRARYDIR=$BOOST/lib/ \
+            -DBoost_INCLUDE_DIR=$BOOST/include/ \
             -DOpenCL_LIBRARY=$CUDA/lib64/libOpenCL.so \
             -DOpenCL_INCLUDE_DIR=$CUDA/include/
     make -j4 && make install && cd ..

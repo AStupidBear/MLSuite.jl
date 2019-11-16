@@ -1,4 +1,5 @@
-using MPI, MPIClusterManagers, Elemental
+using Elemental, MPI
+using MPIClusterManagers
 const MCM = MPIClusterManagers
 
 export ElRegressor, @mb_mpi_do
@@ -29,14 +30,17 @@ function paramgrid(m::ElRegressor)
     end
 end
 
-function fit!(m::ElRegressor, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::ElRegressor, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     @unpack name, alpha = m
     mngr = try Main.mngr catch end
     yr = reshape(y, 1, :)
     xr = reshape(x, size(x, 1), :)
     @eval Main xr, yr = $xr, $yr
+    @mb_mpi_do mngr using TimerOutputs
     @mb_mpi_do mngr begin
-        using Elemental, Distributed, SparseArrays
+        using Elemental, Distributed, SparseArrays, LinearAlgebra
+        reset_timer!()
         if myid() != 1
             xr = spzeros(Float32, $(size(xr))...)
             yr = spzeros(Float32, $(size(yr))...)
@@ -60,13 +64,14 @@ function fit!(m::ElRegressor, x, y, w = nothing; columns = string.(1:size(x, 1))
             Elemental.bpdn!(A, B, $alpha, X)
         end
         X_array = Array(X)
+        print_timer()
     end
     m.W = vec(Main.X_array)
     visualize(m, columns)
     return m
 end
 
-predict(m::ElRegressor, x) = transpose(m.W) * x
+predict(m::ElRegressor, x) = vec(transpose(m.W) * reshape(x, size(x, 1), :))
 
 visualize(m::ElRegressor, columns) = write_feaimpt(m.W, columns)
 

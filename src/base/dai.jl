@@ -9,7 +9,8 @@ end
 
 is_classifier(m::DaiModel) = m.clf
 
-function fit!(m::DaiModel, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::DaiModel, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     ENV["COLS"] = join(columns, '|')
     @unpack isclf, ists = m
     @from h2oai_client imports Client

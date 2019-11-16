@@ -10,6 +10,7 @@ export TfRanker
 end
 
 is_classifier(::TfRanker) = false
+is_ranker(::TfRanker) = true
 
 function paramgrid(m::TfRanker)
     grid = OrderedDict(
@@ -32,9 +33,13 @@ function paramgrid(m::TfRanker)
     params = paramgrid(grid)
 end
 
-function fit!(m::TfRanker, x, y, w = nothing; group = nothing, columns = string.(1:size(x, 1)))
+function fit!(m::TfRanker, x, y, w = nothing; group = nothing, columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
+    if isnothing(group) && ndims(x) == 3
+        group = repeat([size(x, 2)], size(x, 3))
+    end
     ENV["nfea"] = size(x, 1)
-    ENV["nlist"] = min(500, minimum(q))
+    ENV["nlist"] = min(500, minimum(group))
     dst = to_svm(x, y, w, group = group)
     out = mktempdir()
     run(rankcmd(m, dst, out))
@@ -46,7 +51,7 @@ end
 function predict(m::TfRanker, x)
     @unpack tf = m
     ENV["nfea"] = size(x, 1)
-    ENV["nlist"] = size(x, 2)
+    ENV["nlist"] = prod(size(x)[2:end])
     dst = to_svm(x)
     out = mktempdir()
     writetf(out, tf)

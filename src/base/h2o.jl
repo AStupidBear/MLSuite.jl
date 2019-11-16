@@ -33,7 +33,8 @@ is_classifier(m::H2oModel) = m.isclf
 
 support_multiclass(m::H2oModel) = m.name != "psvm"
 
-function fit!(m::H2oModel, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::H2oModel, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     @unpack name, isclf = m
     ENV["COLS"] = join(columns, '|')
     # init
@@ -96,7 +97,6 @@ function fit!(m::H2oModel, x, y, w = nothing; columns = string.(1:size(x, 1)))
         @redirect "summary.txt" begin
             println('*'^100, '\n')
             println("leader summary\n", '='^20)
-            varimp = 
             @trys println(pyo.summary().as_data_frame().to_string(), '\n')
             println("leaderboard table\n", '='^20)
             @trys println(lb.as_data_frame().to_string(), '\n')
@@ -118,7 +118,8 @@ function predict_h2o(m::H2oModel, x)
     columns = split(ENV["COLS"], '|')
     df = DataFrame(pymat(x), columns = columns)
     hdf = to_h2o(df)
-    index = vec(hdf["__index_level_0__"].as_data_frame().values)
+    pred = from_h2o(pyo.predict(hdf))
+    index = vec(hdf["index"].as_data_frame().values)
     pred = from_h2o(pyo.predict(hdf)).set_index(index).sort_index()
     @imports h2o
     h2o.remove(hdf)
@@ -184,6 +185,7 @@ function to_h2o(df)
     dst = mkpath(@sprintf("/tmp/%s", randstring()))
     npart = ceil(Int, length(df) / 20)
     df["part"] = repeat(1:20, inner = npart)[1:length(df)]
+    df.reset_index(inplace = true)
     table = pa.Table.from_pandas(df, preserve_index = false)
     pq.write_to_dataset(table, root_path = dst, partition_cols = ["part"])
     hdf = import_file(dst)

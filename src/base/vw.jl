@@ -26,7 +26,8 @@ function paramgrid(m::VWModel)
      paramgrid(merge(grid, Dict("interactions" => ["", "ff"])))...]
 end
 
-function fit!(m::VWModel, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::VWModel, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     @unpack vw, l1, l2, learning_rate, passes = m
     @unpack nn, interactions, loss_function, link, cmd = m
     dst = tovw(x, y, w, shuffle = true)

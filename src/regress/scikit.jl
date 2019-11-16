@@ -53,7 +53,8 @@ function paramgrid(m::ScikitRegressor)
     params = vcat(vec.(params)...)
 end
 
-function fit!(m::ScikitRegressor, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::ScikitRegressor, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     x, y, w = pymat(x), vec(y), vec(w)
     @unpack name, warm_start, alpha, fit_intercept, kernel, gamma, n_neighbors = m
     @unpack num_layers, hidden_size, lr, n_estimators, num_leaves = m

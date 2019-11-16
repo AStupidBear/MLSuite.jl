@@ -46,7 +46,8 @@ function paramgrid(m::ScikitClassifier)
     end
 end
 
-function fit!(m::ScikitClassifier, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::ScikitClassifier, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     @unpack name, alpha, penalty, loss, gamma = m
     @unpack n_neighbors, num_layers, hidden_size, lr = m
     x, y, w = pymat(x), vec(y), vec(w)
@@ -96,9 +97,7 @@ modelhash(m::ScikitClassifier) = hash(m.pyo)
 
 function visualize(m::ScikitClassifier, columns)
     @unpack name, pyo = m
-    if name == "logistic"
+    if name == "logistic" || name == "linearsvc"
         write_feaimpt(pyo.coef_, columns)
-    elseif name == "linearsvc"
-        write_feaimpt(pyo.base_estimator.coef_, columns)
     end
 end

@@ -23,7 +23,8 @@ function paramgrid(m::GridRegressor)
     paramgrid(grid)
 end
 
-function fit!(m::GridRegressor, x, y, w = nothing; columns = string.(1:size(x, 1)))
+function fit!(m::GridRegressor, x, y, w = nothing; columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
     @unpack α, λ, max_iter, tol, verbose, η0, power_t, dim = m
     x = reshape(x, size(x, 1), :)
     F, N = size(x, 1), size(x, 2)

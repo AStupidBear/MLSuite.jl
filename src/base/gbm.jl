@@ -21,6 +21,7 @@ export GbmModel, GbmRegressor, GbmClassifier, GbmRanker
 end
 
 is_classifier(m::GbmModel) = occursin(r"binary|multi", m.objective)
+is_ranker(m::GbmModel) = occursin("rank", m.objective)
 
 function paramgrid(m::GbmModel)
     @unpack objective, name = m
@@ -53,7 +54,7 @@ function paramgrid(m::GbmModel)
         "bagging_temperature" => [0, 1, 2, 5, 10],
         "colsample_bylevel" => [1, 0.8],
     )
-    if occursin("rank", objective)
+    if is_ranker(m)
         delete!(grid["lightgbm"], "max_position")
         delete!(grid["lightgbm"], "label_gain")
         delete!(grid["lightgbm"], "objective")
@@ -73,7 +74,11 @@ function paramgrid(m::GbmModel)
     vcat(vec.(params)...)
 end
 
-function fit!(m::GbmModel, x, y, w = nothing; group = nothing, columns = string.(1:size(x, 1)))
+function fit!(m::GbmModel, x, y, w = nothing; group = nothing, columns = nothing)
+    columns = something(columns, string.(1:size(x, 1)))
+    if is_ranker(m) && isnothing(group) && ndims(x) == 3
+        group = repeat([size(x, 2)], size(x, 3))
+    end
     x, y, w, group = pymat(x), vec(y), vec(w), vec(group)
     x = DataFrame(x, columns = columns)
     @unpack name, max_bin, objective, max_depth, min_child_weight, gamma = m
@@ -88,15 +93,20 @@ function fit!(m::GbmModel, x, y, w = nothing; group = nothing, columns = string.
     min_child_samples = min(length(y) ÷ 10, min_child_samples)
     if name == "xgboost"
         @from xgboost imports XGBModel, XGBRanker
-        XGBModel = isnothing(group) ? XGBModel : XGBRanker
-        tree_method = usegpu() && isnothing(group) ? "gpu_hist" : "auto"
+        XGBModel = !is_ranker(m) ? XGBModel : XGBRanker
+        tree_method = usegpu() && is_ranker(m) ? "gpu_hist" : "auto"
         pyo = XGBModel(n_jobs = 20, max_bin = max_bin, tree_method = tree_method, single_precision_histogram = true, n_gpus = countgpus(), num_class = num_class)
         pyo.set_params(;@NT(objective, max_depth, min_child_weight, n_estimators, reg_lambda, subsample, gamma)...)
         tree_method == "auto" && pyo.set_params(colsample_bytree = colsample_bytree)
         if isnothing(group)
             @time pyo.fit(x, y, sample_weight = w, eval_set = [(x, y)], sample_weight_eval_set = bra(w), verbose = true)
         else
-            @time pyo.fit(x, y, group, sample_weight = w, eval_set = [(x, y)], sample_weight_eval_set = bra(w), eval_group = bra(group), verbose = true, eval_matric = "ndcg@20")
+            if length(group) != length(w)
+                @imports numpy as np
+                w = map(sum, np.split(w, cumsum(group[1:end - 1])))
+                @show length(w), length(group)
+            end
+            @time pyo.fit(x, y, group, sample_weight = w, eval_set = [(x, y)], sample_weight_eval_set = bra(w), eval_group = bra(group), verbose = true)
         end
     elseif name == "lightgbm"
         @from lightgbm imports LGBMModel
