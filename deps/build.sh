@@ -32,7 +32,7 @@ if [ ! -f $BIN/vw ]; then
     chmod +x $BIN/{vw,vw-varinfo}
 fi
 
-if [ ! -f $BIN/ranklib ]; then
+if [ ! -f $BIN/ranklib.jar ]; then
     proxychains wget -O $BIN/ranklib.jar https://sourceforge.net/projects/lemur/files/lemur/RankLib-2.11/RankLib-2.11.jar
     echo '#!/bin/bash' > $BIN/ranklib
     echo 'java -jar $(dirname $0)/ranklib.jar "$@"' >> $BIN/ranklib
