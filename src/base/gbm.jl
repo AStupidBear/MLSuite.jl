@@ -114,8 +114,8 @@ function fit!(m::GbmModel, x, y, w = nothing; group = nothing, columns = nothing
         device = usegpu() ? "gpu" : "cpu"
         pyo = LGBMModel(n_jobs = 20, max_bin = max_bin - 1, device = device, label_gain = label_gain, num_class = num_class)
         pyo.set_params(;@NT(objective, num_leaves, min_child_samples, max_position, n_estimators, reg_lambda, subsample, colsample_bytree)...)
-        x.columns = cols′ = [filter(!isspace, unidecode(c)) for c in columns]
-        @time pyo.fit(x, y, w, group = group, eval_set = [(x, y)], eval_sample_weight = bra(w), eval_group = bra(group), feature_name = columns)
+        x.columns = columns′ = [replace(filter(!isspace, unidecode(c)), ":" => "-") for c in columns]
+        @time pyo.fit(x, y, w, group = group, eval_set = [(x, y)], eval_sample_weight = bra(w), eval_group = bra(group), feature_name = columns′)
     elseif name == "catboost"
         @from catboost imports CatBoost
         @imports numpy as np
