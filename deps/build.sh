@@ -68,6 +68,6 @@ if [ ! -f $LGBM/bin/lightgbm ]; then
             -DOpenCL_INCLUDE_DIR=$CUDA/include/
     make -j4 && make install && cd ..
     ln -s $LGBM/bin/lightgbm $BIN/lightgbm
-    cd python-package && $PYTHON setup.py install --precompile -O2
+    # cd python-package && $PYTHON setup.py install --precompile -O2
     cd $CWD && \rm -rf LightGBM
 fi
