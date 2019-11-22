@@ -41,4 +41,5 @@ end
 
 buildsh = joinpath(@__DIR__, "build.sh")
 ENV["PYTHON"] = python
+ENV["JULIA_DEPOT_PATH"] = DEPOT_PATH[1]
 run(`bash $buildsh`)

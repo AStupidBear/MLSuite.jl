@@ -15,12 +15,12 @@ support_multiclass(m::BaseEstimator) = is_classifier(m)
 is_ranker(::BaseEstimator) = false
 
 const JULIA = joinpath(Sys.BINDIR, Base.julia_exename())
-const VW = joinpath(@__DIR__, "../deps/usr/bin/vw")
-const VW_VARINFO = joinpath(@__DIR__, "../deps/usr/bin/vw-varinfo")
-const SVM_RANK_LEARN = joinpath(@__DIR__, "../deps/usr/bin/svm_rank_learn")
-const SVM_RANK_CLASSIFY = joinpath(@__DIR__, "../deps/usr/bin/svm_rank_classify")
-const RANKLIB = joinpath(@__DIR__, "../deps/usr/bin/ranklib")
-const LIGHTGBM = joinpath(@__DIR__, "../deps/usr/bin/lightgbm")
+const VW = joinpath(DEPOT_PATH[1], "mlsuite/bin/vw")
+const VW_VARINFO = joinpath(DEPOT_PATH[1], "mlsuite/bin/vw-varinfo")
+const SVM_RANK_LEARN = joinpath(DEPOT_PATH[1], "mlsuite/bin/svm_rank_learn")
+const SVM_RANK_CLASSIFY = joinpath(DEPOT_PATH[1], "mlsuite/bin/svm_rank_classify")
+const RANKLIB = joinpath(DEPOT_PATH[1], "mlsuite/bin/ranklib")
+const LIGHTGBM = joinpath(DEPOT_PATH[1], "mlsuite/bin/lightgbm")
 
 export accuracy_score, r2_score
 accuracy_score(a...; ka...) = pyimport("sklearn.metrics").accuracy_score(a...; ka...)
@@ -44,7 +44,7 @@ include("rank/ranklib.jl")
 include("rank/tf.jl")
 
 function __init__()
-    boostlib = joinpath(@__DIR__, "../deps/usr/boost/lib") 
+    boostlib = joinpath(DEPOT_PATH[1], "mlsuite/boost/lib") 
     ENV["LD_LIBRARY_PATH"] = boostlib * ":" * get(ENV, "LD_LIBRARY_PATH", "")
     @require Elemental="902c3f28-d1ec-5e7e-8399-a24c3845ee38" include("regress/el.jl")
 end

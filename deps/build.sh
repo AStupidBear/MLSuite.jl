@@ -1,10 +1,10 @@
 #!/bin/bash
-CWD=$(pwd)
-BIN=$(pwd)/usr/bin
-LGBM=$(pwd)/usr/lightgbm
-CUDA=$(pwd)/usr/cuda
-BOOST=$(pwd)/usr/boost
-mkdir -p $BIN
+MLSUITE=$JULIA_DEPOT_PATH/mlsuite
+BIN=$MLSUITE/bin
+LGBM=$MLSUITE/lightgbm
+CUDA=$MLSUITE/cuda
+BOOST=$MLSUITE/boost
+mkdir -p $BIN && cd /tmp
 
 if nvidia-smi &> /dev/null; then
     USE_GPU=1
@@ -41,19 +41,19 @@ fi
 
 if [ ! -f $BIN/svm_rank_classify ]; then
     wget http://download.joachims.org/svm_rank/current/svm_rank_linux64.tar.gz
-    tar xvzf svm_rank_linux64.tar.gz -C $BIN && \rm svm_rank_*.tar.gz
+    tar xvzf svm_rank_linux64.tar.gz -C $BIN && rm svm_rank_*.tar.gz
 fi
 
 if [ ! -d $CUDA ] && [ $USE_GPU == 1 ]; then
     wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
-    bash cuda_*_linux --silent --toolkit --toolkitpath=$CUDA && \rm cuda_*_linux
+    bash cuda_*_linux --silent --toolkit --toolkitpath=$CUDA && rm cuda_*_linux
 fi
 
 if [ ! -d $BOOST ] && [ $USE_GPU == 1 ]; then
     proxychains wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
-    tar -zxvf boost_1_66_0.tar.gz && \rm boost*.tar.gz
+    tar -zxvf boost_1_66_0.tar.gz && rm boost*.tar.gz
     cd boost_1_66_0 && ./bootstrap.sh --prefix=$BOOST && ./b2 install
-    cd $CWD && \rm -rf boost_1_66_0
+    cd /tmp && rm -rf boost_1_66_0
 fi
 
 if [ ! -f $LGBM/bin/lightgbm ]; then
@@ -68,6 +68,6 @@ if [ ! -f $LGBM/bin/lightgbm ]; then
             -DOpenCL_INCLUDE_DIR=$CUDA/include/
     make -j4 && make install && cd ..
     ln -s $LGBM/bin/lightgbm $BIN/lightgbm
-    # cd python-package && $PYTHON setup.py install --precompile -O2
-    cd $CWD && \rm -rf LightGBM
+    cd python-package && $PYTHON setup.py install --precompile -O2
+    cd /tmp && rm -rf LightGBM
 fi
