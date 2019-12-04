@@ -1,5 +1,3 @@
-export signone
-
 function sortall(xs::AbstractArray...; kw...)
     p = sortperm(first(xs); kw...)
     map(x -> x[p], xs)
@@ -77,9 +75,6 @@ function parseenv(key, default::T) where T
     end
 end
 
-paramgrid(grid::AbstractDict, combine = Iterators.product) =
-    [Dict(zip(keys(grid), v)) for v in combine(values(grid)...)]
-
 rmdir(src) = rm(src, recursive = true)
 
 memory(x) = Base.summarysize(x) / 1024^2
@@ -122,14 +117,6 @@ end
 Base.vec(::Nothing) = nothing
 
 bra(x) = isnothing(x) ? x : [x]
-
-Base.sign(x::Real, Θ) = ifelse(x < -Θ, oftype(x, -1), ifelse(x > Θ, one(x), zero(x)))
-
-function signone(x::Real, Θ = zero(x))
-    y = sign(x, Θ)
-    !iszero(y) && return y
-    rand([-one(x), one(x)])
-end
 
 sigmoid(x) = 1 / (1 + exp(-x))
 

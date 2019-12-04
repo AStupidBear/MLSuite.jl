@@ -74,7 +74,7 @@ classifiers = [
 for binary in [true, false], model in classifiers
     print(model)
     !binary && !MLSuite.support_multiclass(model) && continue
-    y′ = binary ? signone.(y) : @. ifelse(abs(y) > 0.1, sign(y) + 1.0, 1.0)
+    y′ = binary ? MLSuite.signone.(y) : @. ifelse(abs(y) > 0.1, sign(y) + 1.0, 1.0)
     MLSuite.fit!(model, x, y′, w)
     ŷ = MLSuite.predict(model, x)
     prob = MLSuite.predict_proba(model, x)

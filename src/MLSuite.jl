@@ -7,12 +7,7 @@ using DataStructures, Parameters, ProgressMeter, PyCall, BSON, Requires
 using PyCallUtils, PandasLite, HDF5Utils, SVMLightWriter, Iconv
 using ScikitLearnBase: BaseEstimator, BaseClassifier, BaseRegressor
 import ScikitLearnBase: fit!, predict, predict_proba, is_classifier
-
-reset!(::BaseEstimator) = nothing
-istree(::BaseEstimator) = false
-isrnn(::BaseEstimator) = false
-support_multiclass(m::BaseEstimator) = is_classifier(m)
-is_ranker(::BaseEstimator) = false
+import MLSuiteBase: paramgrid, reset!, istree, isrnn, is_ranker, support_multiclass, modelhash
 
 const JULIA = joinpath(Sys.BINDIR, Base.julia_exename())
 const VW = joinpath(DEPOT_PATH[1], "mlsuite/bin/vw")
