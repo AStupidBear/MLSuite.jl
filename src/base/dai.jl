@@ -1,54 +1,69 @@
 export DaiModel, DaiRegressor, DaiClassifier
 
-@with_kw mutable struct DaiModel <: BaseEstimator
-    h2oai::PyObject = PyNULL()
-    exp::PyObject = PyNULL()
-    isclf::Bool = true
-    ists::Bool = false
+using PyCall: python
+
+mutable struct DaiModel <: BaseEstimator
+    key::String
+    params::Dict
 end
 
-is_classifier(m::DaiModel) = m.clf
+DaiModel(;ka...) = DaiModel("", Dict(String(k) => v for (k, v) in ka))
 
-function fit!(m::DaiModel, x, y, w = nothing; columns = nothing)
+is_classifier(m::DaiModel) = get(m.params, "is_classification", "True") == "True"
+
+function fit!(m::DaiModel, x, y, w = nothing; eval_set = (), columns = nothing)
+    install_h2oai_client()
     columns = something(columns, string.(1:size(x, 1)))
-    ENV["COLS"] = join(columns, '|')
-    @unpack isclf, ists = m
-    @from h2oai_client imports Client
-    h2oai = Client(address = "http://127.0.0.1:12345",
-                username = "abcd", password = "dcba")
-    dfx = DataFrame(pymat(x), columns = columns)
-    dfy = DataFrame(vec(y), columns = ["label"])
-    if isnothing(w)
-        df  = pdhcat(dfx, dfy)
-    else
-        dfw = DataFrame(vec(w), columns = ["weight"])
-        df  = pdhcat(dfx, dfy, dfw)
-    end
-    parquet = "/dev/shm/dai.parquet"
-    pd.to_parquet(df, parquet)
-    dset = h2oai.create_dataset_sync(parquet)
-    weight_col = isnothing(w) ? nothing : "weight"
+    @unpack key, params = m
+    dataset = dump_dai_data(x, y, w, columns = columns)
+    testset = dump_dai_data(eval_set..., columns = columns)
+    weight_col = isnothing(w) ? "None" : "'weight'"
+    is_classification = pop!(params, "is_classification", "True")
+    is_time_series = pop!(params, "is_time_series", "False")
+    params = join([string(k, "=", v) for (k, v) in params], ",")
+    m.key = """
+    from h2oai_client import Client
+    h2oai = Client(address='http://127.0.0.1:12345', username='username', password='password')
+    dataset = h2oai.create_dataset_sync('$dataset')
+    if len('$testset') > 0:
+        testset = h2oai.create_dataset_sync('$testset')
+    else:
+        testset = type('dataset', (object,), {'key': None})()
     params = h2oai.get_experiment_tuning_suggestion(
-        dataset_key = dset.key, target_col = "label",
-        weight_col = weight_col, is_classification = isclf,
-        is_time_series = ists, config_overrides = nothing).dump()
-    println(params)
-    params = [Symbol(k) => v for (k, v) in params]
-    exp = h2oai.start_experiment_sync(;params...)
-    rm(parquet, force = true)
-    @pack! m = h2oai, exp
+        dataset_key=dataset.key,
+        target_col='label',
+        is_classification=$is_classification,
+        is_time_series=$is_time_series,
+        config_overrides=None)
+    exp = h2oai.start_experiment_sync(
+        dataset_key=dataset.key,
+        testset_key=testset.key,
+        target_col='label', 
+        weight_col=$weight_col,
+        is_classification=$is_classification,
+        is_time_series=$is_time_series,
+        accuracy=params.accuracy, 
+        interpretability=params.interpretability,
+        time=params.time, $params)
+    print(exp.key)
+    """ |> pyrun
+    rm(dataset, force = true)
+    rm(testset, force = true)
     return m
 end
 
 function predict_dai(m::DaiModel, x)
-    @unpack h2oai, exp = m
-    columns = split(ENV["COLS"], '|')
-    df = DataFrame(pymat(x), columns = columns)
-    parquet = "/dev/shm/dai.parquet"
-    pd.to_parquet(df, parquet)
-    pred = h2oai.make_prediction_sync(exp.key, parquet, false, false)
-    rm(parquet, force = true)
+    @unpack key = m
+    dataset = dump_dai_data(x)
+    csv = """
+    from h2oai_client import Client
+    h2oai = Client(address = "http://127.0.0.1:12345",
+            username = "username", password = "password")
+    pred = h2oai.make_prediction_sync('$key', '$dataset', false, false)
     csv = h2oai.download(pred.predictions_csv_path, "/tmp")
+    print(csv)
+    """ |> pyrun
+    rm(dataset, force = true)
     pd.read_csv(csv)
 end
 
@@ -56,12 +71,54 @@ predict_proba(m::DaiModel, x) = Array(predict_dai(m, x))
 
 function predict(m::DaiModel, x)
     df = predict_dai(m, x)
-    !m.isclf ? Array(df) :
+    is_classifier(m) ? Array(df) :
     Array(df.idxmax(axis = 1))
 end
 
-modelhash(m::DaiModel) = hash(m.pyo)
+modelhash(m::DaiModel) = m.key
 
-DaiRegressor(;ka...) = DaiModel(;isclf = false, ka...)
+DaiRegressor(;ka...) = DaiModel(is_classification = "True", ka...)
 
-DaiClassifier(;ka...) = DaiModel(;isclf = true, ka...)
+DaiClassifier(;ka...) = DaiModel(is_classification = "False", ka...)
+
+function dump_dai_data(x = nothing, y = nothing, w = nothing; columns = nothing)
+    isnothing(x) && return ""
+    if isnothing(columns)
+        columns = split(ENV["COLS"], '|')
+    else
+        ENV["COLS"] = join(columns, '|')
+    end
+    dfx = DataFrame(pymat(x), columns = columns)
+    if isnothing(y)
+        dfy = DataFrame()
+    else
+        dfy = DataFrame(vec(y), columns = ["label"])
+    end
+    if isnothing(w)
+        dfw = DataFrame()
+    else
+        dfw = DataFrame(vec(w), columns = ["weight"])
+    end
+    df = pdhcat(dfx, dfy, dfw)
+    parquet = @sprintf("/dev/shm/%s.parquet", randstring())
+    df.to_parquet(parquet)
+    return parquet
+end
+
+function pyrun(str)
+    println(str)
+    cmd = Cmd(["python", "-c", str])
+    faketime = "/usr/local/lib/faketime/libfaketimeMT.so.1"
+    withenv("LD_PRELOAD" => faketime, "FAKETIME" => "-10year") do
+        lines = readlines(cmd)
+        println(join(lines, '\n'))
+        lines[end]
+    end
+end
+
+function install_h2oai_client()
+    if !occursin("h2oai", read(`$python -m pip list`, String))
+        whl="http://localhost:12345/static/h2oai_client-1.7.0-py3-none-any.whl"
+        run(`$python -m pip install $whl`)
+    end
+end
