@@ -67,6 +67,7 @@ function fit!(m::ElRegressor, x, y, w = nothing; columns = nothing)
         print_timer()
     end
     m.W = vec(Main.X_array)
+    BSON.bson("model.bson", model = m)
     visualize(m, columns)
     return m
 end

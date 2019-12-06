@@ -82,6 +82,7 @@ function fit!(m::LgbmModel, x, y, w = nothing; columns = nothing)
         so = UInt8[]
     end
     @pack! m = pyo, so
+    BSON.bson("model.bson", model = m)
     visualize(m, columns)
     return m
 end

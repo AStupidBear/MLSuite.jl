@@ -55,6 +55,7 @@ function fit!(m::GridRegressor, x, y, w = nothing; columns = nothing)
         λ > 0 && (∂W .+= λ .* sign.(W))
         W .-= (η0 / t^power_t) .* ∂W
     end
+    BSON.bson("model.bson", model = m)
     visualize(m, columns)
     return m
 end

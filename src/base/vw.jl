@@ -40,6 +40,7 @@ function fit!(m::VWModel, x, y, w = nothing; columns = nothing)
     # run(pipeline(`$VW_VARINFO $dst -t -i $path`, stdout = "varinfo.txt"))
     m.vw = read("vw")
     foreach(rm, ["vw", dst, dst * ".cache"])
+    BSON.bson("model.bson", model = m)
     visualize(m, columns)
     return m
 end

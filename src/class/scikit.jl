@@ -78,6 +78,7 @@ function fit!(m::ScikitClassifier, x, y, w = nothing; columns = nothing)
         pyo.fit(x, y, sample_weight = w)
     end
     @pack! m = pyo
+    BSON.bson("model.bson", model = m)
     visualize(m, columns)
     return m
 end

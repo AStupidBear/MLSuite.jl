@@ -130,6 +130,7 @@ function fit!(m::GbmModel, x, y, w = nothing; group = nothing, columns = nothing
         @time pyo.fit(x, y, sample_weight = w, group_id = group)
     end
     @pack! m = pyo
+    BSON.bson("model.bson", model = m)
     visualize(m, columns)
     return m
 end

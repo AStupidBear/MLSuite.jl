@@ -110,6 +110,7 @@ function fit!(m::H2oModel, x, y, w = nothing; columns = nothing)
     h2o.remove(hdf)
     h2o.api("POST /3/GarbageCollect")
     @pack! m = pyo
+    BSON.bson("model.bson", model = m)
     return m
 end
 

@@ -31,6 +31,7 @@ function fit!(m::RanklibRanker, x, y, w = nothing; group = nothing, columns = no
     run(`$RANKLIB -train $dst -save ranklib -ranker $ranker -metric2t $metric2t`)
     m.ranklib = read("ranklib")
     foreach(rm, ["ranklib", dst])
+    BSON.bson("model.bson", model = m)
     return m
 end
 

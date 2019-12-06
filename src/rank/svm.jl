@@ -27,6 +27,7 @@ function fit!(m::SvmRanker, x, y, w = nothing; group = nothing, columns = nothin
     run(`$SVM_RANK_LEARN -c $c -p $p -o $o $dst svm`)
     m.svm = read("svm")
     foreach(rm, ["svm", dst])
+    BSON.bson("model.bson", model = m)
     return m
 end
 

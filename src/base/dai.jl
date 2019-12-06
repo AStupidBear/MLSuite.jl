@@ -4,10 +4,12 @@ using PyCall: python
 
 mutable struct DaiModel <: BaseEstimator
     key::String
-    params::Dict
+    params::Dict{String, String}
 end
 
-DaiModel(;ka...) = DaiModel("", Dict(String(k) => v for (k, v) in ka))
+wrapstring(s) = isa(s, AbstractString) ? "'$s'" : string(s)
+
+DaiModel(;ka...) = DaiModel("", Dict(String(k) => wrapstring(v) for (k, v) in ka))
 
 is_classifier(m::DaiModel) = get(m.params, "is_classification", "True") == "True"
 
@@ -49,6 +51,7 @@ function fit!(m::DaiModel, x, y, w = nothing; eval_set = (), columns = nothing)
     """ |> pyrun
     rm(dataset, force = true)
     rm(testset, force = true)
+    BSON.bson("model.bson", model = m)
     return m
 end
 
@@ -77,9 +80,9 @@ end
 
 modelhash(m::DaiModel) = m.key
 
-DaiRegressor(;ka...) = DaiModel(is_classification = "True", ka...)
+DaiRegressor(;ka...) = DaiModel(;is_classification = "True", ka...)
 
-DaiClassifier(;ka...) = DaiModel(is_classification = "False", ka...)
+DaiClassifier(;ka...) = DaiModel(;is_classification = "False", ka...)
 
 function dump_dai_data(x = nothing, y = nothing, w = nothing; columns = nothing)
     isnothing(x) && return ""
@@ -122,3 +125,5 @@ function install_h2oai_client()
         run(`$python -m pip install $whl`)
     end
 end
+
+Base.vec(x::PandasLite.PandasWrapped) = x

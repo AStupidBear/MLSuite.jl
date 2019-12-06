@@ -47,6 +47,7 @@ function fit!(m::TfRanker, x, y, w = nothing; group = nothing, columns = nothing
     run(rankcmd(m, dst, out))
     m.tf = readtf(out)
     foreach(rmdir, [dst, out])
+    BSON.bson("model.bson", model = m)
     return m
 end
 
