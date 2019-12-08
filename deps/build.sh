@@ -1,5 +1,6 @@
 #!/bin/bash
 MLSUITE=$JULIA_DEPOT_PATH/mlsuite
+FAKETIME=$JULIA_DEPOT_PATH/faketime
 BIN=$MLSUITE/bin
 LGBM=$MLSUITE/lightgbm
 CUDA=$MLSUITE/cuda
@@ -70,4 +71,10 @@ if [ ! -f $LGBM/bin/lightgbm ]; then
     ln -s $LGBM/bin/lightgbm $BIN/lightgbm
     cd python-package && $PYTHON setup.py install --precompile -O2
     cd /tmp && rm -rf LightGBM
+fi
+
+if [ ! -f $FAKETIME/lib/libfaketime.so.1 ]; then
+    git clone https://github.com/wolfcw/libfaketime.git
+    cd libfaketime/src && PREFIX=$FAKETIME LIBDIRNAME=/lib make install
+    cd /tmp && rm -rf libfaketime
 fi

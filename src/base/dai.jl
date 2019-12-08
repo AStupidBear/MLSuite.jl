@@ -14,7 +14,8 @@ DaiModel(;ka...) = DaiModel("", Dict(String(k) => wrapstring(v) for (k, v) in ka
 is_classifier(m::DaiModel) = get(m.params, "is_classification", "True") == "True"
 
 function fit!(m::DaiModel, x, y, w = nothing; eval_set = (), columns = nothing)
-    install_h2oai_client()
+    whl="http://localhost:12345/static/h2oai_client-1.7.0-py3-none-any.whl"
+    run(pipeline(`$python -m pip install $whl`, stdout = devnull))
     columns = something(columns, string.(1:size(x, 1)))
     @unpack key, params = m
     dataset = dump_dai_data(x, y, w, columns = columns)
@@ -60,8 +61,7 @@ function predict_dai(m::DaiModel, x)
     dataset = dump_dai_data(x)
     csv = """
     from h2oai_client import Client
-    h2oai = Client(address = "http://127.0.0.1:12345",
-            username = "username", password = "password")
+    h2oai = Client(address='http://127.0.0.1:12345', username='username', password='password')
     pred = h2oai.make_prediction_sync('$key', '$dataset', false, false)
     csv = h2oai.download(pred.predictions_csv_path, "/tmp")
     print(csv)
@@ -111,18 +111,11 @@ end
 function pyrun(str)
     println(str)
     cmd = Cmd(["python", "-c", str])
-    faketime = "/usr/local/lib/faketime/libfaketimeMT.so.1"
+    faketime = joinpath(DEPOT_PATH[1], "faketime/lib/libfaketimeMT.so.1")
     withenv("LD_PRELOAD" => faketime, "FAKETIME" => "-10year") do
         lines = readlines(cmd)
         println(join(lines, '\n'))
         lines[end]
-    end
-end
-
-function install_h2oai_client()
-    if !occursin("h2oai", read(`$python -m pip list`, String))
-        whl="http://localhost:12345/static/h2oai_client-1.7.0-py3-none-any.whl"
-        run(`$python -m pip install $whl`)
     end
 end
 
