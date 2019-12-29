@@ -34,7 +34,7 @@ TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 [compat]
 ArgParse = "0.6"
 BSON = "0.2"
-BinDeps = "0.8"
+BinDeps = "0.7,0.8,1"
 DataStructures = "0.17"
 HDF5 = "0.12"
 HDF5Utils = "0.1"
