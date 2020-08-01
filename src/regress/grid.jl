@@ -16,11 +16,9 @@ end
 
 is_classifier(::GridRegressor) = false
 
-function paramgrid(m::GridRegressor)
-    grid = OrderedDict(
-        "α" => [0.001, 0.01, 0.1, 1, 10]
-    )
-    paramgrid(grid)
+function gridparams(m::GridRegressor)
+    grid = ["α" => [0.001, 0.01, 0.1, 1, 10]]
+    gridparams(grid)
 end
 
 function fit!(m::GridRegressor, x, y, w = nothing; columns = nothing)

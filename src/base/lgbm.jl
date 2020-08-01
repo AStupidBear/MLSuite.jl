@@ -16,16 +16,16 @@ end
 
 is_classifier(m::LgbmModel) = occursin(r"binary|multi", m.objective)
 
-function paramgrid(m::LgbmModel)
-    grid = OrderedDict(
+function gridparams(m::LgbmModel)
+    grid = [
         "num_leaves" => [15, 31],
         "min_child_samples" => [1000, 100, 5000],
         "n_estimators" => [20, 50],
         "reg_lambda" => [0.1, 1, 10],
         "subsample" => [1, 0.8],
         "colsample_bytree" => [1, 0.8],
-    )
-    params = paramgrid(grid)
+    ]
+    params = gridparams(grid)
 end
 
 function fit!(m::LgbmModel, x, y, w = nothing; columns = nothing)

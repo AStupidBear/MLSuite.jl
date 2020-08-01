@@ -20,12 +20,12 @@ end
 
 is_classifier(::ElRegressor) = false
 
-function paramgrid(m::ElRegressor)
-    grid = OrderedDict(
+function gridparams(m::ElRegressor)
+    grid = [
         "name" => ["lstsq", "ridge", "lasso"],
         "alpha" => [0.001, 0.01, 0.1, 1, 10],
-    )
-    filter(paramgrid(grid)) do d
+    ]
+    filter(gridparams(grid)) do d
         d["name"] != "lstsq" || d["alpha"] == 0.001
     end
 end

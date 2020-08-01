@@ -23,55 +23,44 @@ end
 is_classifier(m::GbmModel) = occursin(r"binary|multi", m.objective)
 is_ranker(m::GbmModel) = occursin("rank", m.objective)
 
-function paramgrid(m::GbmModel)
+function gridparams(m::GbmModel)
     @unpack objective, name = m
-    grid = Dict()
-    grid["lightgbm"] = OrderedDict(
-        "objective" => ["rank:ndcg"],
-        "num_leaves" => [15, 31],
-        "max_position" => [100, 200, 500, 1000],
-        "label_gain" => [join(0:30, ','), ""],
-        "min_child_samples" => [1000, 100, 5000],
-        "subsample" => [1, 0.8],
-        "colsample_bytree" => [1, 0.8]
-    )
-    grid["xgboost"] = OrderedDict(
-        "objective" => ["rank:pairwise", "rank:map", "rank:ndcg"],
-        "max_depth" => [5, 3, 7],
-        "min_child_weight" => [1, 10, 100],
-        "gamma" => [0, 0.01, 0.1, 1],
-        "subsample" => [1, 0.8],
-        "colsample_bytree" => [1, 0.8],
-    )
-    grid["catboost"] = OrderedDict(
-        "objective" => ["rank:queryrmse", 
-                            "rank:yetirank", 
-                            "rank:yetirankpairwise", 
-                            "rank:pairlogit", 
-                            "rank:pairlogitpairwise"],
-        "max_depth" => [5, 3, 7],
-        "min_child_samples" => [1000, 100, 5000],
-        "bagging_temperature" => [0, 1, 2, 5, 10],
-        "colsample_bylevel" => [1, 0.8],
-    )
-    if is_ranker(m)
-        delete!(grid["lightgbm"], "max_position")
-        delete!(grid["lightgbm"], "label_gain")
-        delete!(grid["lightgbm"], "objective")
-        delete!(grid["xgboost"], "objective")
-        delete!(grid["catboost"], "objective")
-    end
-    usegpu() && delete!(grid["catboost"], "colsample_bylevel")
-    !usegpu() && delete!(grid["catboost"], "min_child_samples")
-    grid["shared"] = OrderedDict(
+    rank = is_ranker(m)
+    grid = [
         "n_estimators" => [20, 50, 100],
         "reg_lambda" => [0.1, 1, 10],
-    )
-    params = map(["lightgbm", "catboost", "xgboost"]) do name
-        namedict = Dict("name" => [name])
-        paramgrid(merge(namedict, grid["shared"], grid[name]))
-    end
-    vcat(vec.(params)...)
+        [   
+            "name" => "lightgbm",
+            "objective" => rank ? ["rank:ndcg"] : [objective],
+            "num_leaves" => [15, 31],
+            "max_position" => rank ? [100, 200, 500, 1000] : [1],
+            "label_gain" => rank ? [join(0:30, ','), ""] : [""],
+            "min_child_samples" => [1000, 100, 5000],
+            "subsample" => [1, 0.8],
+            "colsample_bytree" => [1, 0.8]
+        ],
+        [
+            "name" => ["xgboost"],
+            "objective" => rank ? ["rank:pairwise", "rank:map", "rank:ndcg"] : [objective],
+            "max_depth" => [5, 3, 7],
+            "min_child_weight" => [1, 10, 100],
+            "gamma" => [0, 0.01, 0.1, 1],
+            "subsample" => [1, 0.8],
+            "colsample_bytree" => [1, 0.8],
+        ],
+        [
+            "name" => ["catboost"],
+            "objective" => !rank ? [objective] :
+                ["rank:queryrmse", "rank:yetirank", 
+                "rank:yetirankpairwise", "rank:pairlogit", 
+                "rank:pairlogitpairwise"],
+            "max_depth" => [5, 3, 7],
+            "min_child_samples" => !usegpu() ? [1000] : [1000, 100, 5000],
+            "bagging_temperature" => [0, 1, 2, 5, 10],
+            "colsample_bylevel" => usegpu() ? [1] : [1, 0.8],
+        ]
+    ]
+    return griparams(grid)
 end
 
 function fit!(m::GbmModel, x, y, w = nothing; group = nothing, columns = nothing)

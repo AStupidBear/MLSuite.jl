@@ -22,35 +22,39 @@ end
 
 is_classifier(::ScikitRegressor) = false
 
-function paramgrid(m::ScikitRegressor)
-    grid = Dict()
-    grid["lasso"] = grid["ridge"] = OrderedDict("alpha" => [0.001, 0.01, 0.1, 1])
-    grid["kernelridge"] = OrderedDict(
-        "alpha" => [0.001, 0.01, 0.1, 1],
-        "kernel" => ["rbf", "poly", "sigmoid"],
-        "gamma" => [0, 0.01, 0.1, 1, 10, 100]
-    )
-    grid["knn"] = OrderedDict("n_neighbors" => [10, 100, 1000])
-    grid["linearsvr"] = grid["ridge"]
-    grid["svr"] = grid["kernelridge"]
-    grid["mlp"] = OrderedDict(
-        "num_layers" => [1, 2],
-        "hidden_size" => [10, 100],
-        "lr" => [0.001, 0.01]
-    )
-    grid["lightgbm"] = OrderedDict(
-        "num_leaves" => [15, 31],
-        "min_child_samples" => [1000, 100, 5000],
-        "n_estimators" => [20, 50],
-        "reg_lambda" => [0.1, 1, 10],
-        "subsample" => [1, 0.8],
-        "colsample_bytree" => [1, 0.8],
-    )
-    params = map(["lightgbm", "ridge", "mlp", "svr"]) do name
-        dict = Dict("name" => [name])
-        paramgrid(merge(dict, grid[name]))
-    end
-    params = vcat(vec.(params)...)
+function gridparams(m::ScikitRegressor)
+    grid = [
+        [
+            "name" => ["lasso", "ridge", "linearsvr"],
+            "alpha" => [0.001, 0.01, 0.1, 1]
+        ],
+        [
+            "name" => ["kernelridge", "svr"],
+            "alpha" => [0.001, 0.01, 0.1, 1],
+            "kernel" => ["rbf", "poly", "sigmoid"],
+            "gamma" => [0, 0.01, 0.1, 1, 10, 100]
+        ],
+        [
+            "name" => ["knn"],
+            "n_neighbors" => [10, 100, 1000],
+        ],
+        [
+            "name" => ["mlp"],
+            "num_layers" => [1, 2],
+            "hidden_size" => [10, 100],
+            "lr" => [0.001, 0.01]
+        ],
+        [
+            "name" => ["lightgbm"],
+            "num_leaves" => [15, 31],
+            "min_child_samples" => [1000, 100, 5000],
+            "n_estimators" => [20, 50],
+            "reg_lambda" => [0.1, 1, 10],
+            "subsample" => [1, 0.8],
+            "colsample_bytree" => [1, 0.8],
+        ]
+    ]
+    gridparams(grid)
 end
 
 function fit!(m::ScikitRegressor, x, y, w = nothing; columns = nothing)

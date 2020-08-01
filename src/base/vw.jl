@@ -17,13 +17,15 @@ is_classifier(m::VWModel) = m.loss_function == "logistic"
 
 support_multiclass(::VWModel) = false
 
-function paramgrid(m::VWModel)
-    grid = OrderedDict(
+function gridparams(m::VWModel)
+    grid = [
         "l2" => [0.001, 0.01, 0.1, 1, 10],
         "learning_rate" => [0.01, 0.1, 0.5],
-    )
-    [paramgrid(merge(grid, Dict("nn" => [0, 10, 100])))...,
-     paramgrid(merge(grid, Dict("interactions" => ["", "ff"])))...]
+        [
+            ["nn" => [0, 10, 100]], 
+            ["interactions" => ["", "ff"]]
+        ]
+    ]
 end
 
 function fit!(m::VWModel, x, y, w = nothing; columns = nothing)

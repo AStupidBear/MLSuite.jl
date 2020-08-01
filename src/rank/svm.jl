@@ -10,11 +10,9 @@ end
 is_classifier(::SvmRanker) = false
 is_ranker(::SvmRanker) = true
 
-function paramgrid(m::SvmRanker)
-    grid = OrderedDict(
-        "c" => [0.01, 0.1, 1, 10, 100],
-    )
-    params = paramgrid(grid)
+function gridparams(m::SvmRanker)
+    grid = ["c" => [0.01, 0.1, 1, 10, 100]]
+    params = gridparams(grid)
 end
 
 function fit!(m::SvmRanker, x, y, w = nothing; group = nothing, columns = nothing)

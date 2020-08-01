@@ -15,35 +15,34 @@ end
 
 is_classifier(::ScikitClassifier) = true
 
-function paramgrid(m::ScikitClassifier)
-    grid = Dict()
-    grid["logistic"] = OrderedDict(
-        "alpha" => [0.001, 0.01, 0.1, 1, 5],
-        "penalty" => ["l2", "l1"]
-    )
-    grid["linearsvc"] = OrderedDict(
-        "alpha" => [0.001, 0.01, 0.1, 1, 5],
-        "penalty" => ["l2", "l1"],
-        "loss" => ["hinge", "squared_hinge"]
-    )
-    grid["svc"] = OrderedDict(
-        "alpha" => [0.001, 0.01, 0.1, 1, 5, 10, 20, 50],
-        "gamma" => [0, 0.01, 0.1, 1, 10, 100]
-    )
-    grid["mlp"] = OrderedDict(
-        "num_layers" => [1, 2],
-        "hidden_size" => [10, 100],
-        "lr" => [0.001, 0.01]
-    )
-    params = map(["logistic", "linearsvc", "mlp"]) do name
-        dict = Dict("name" => [name])
-        paramgrid(merge(dict, grid[name]))
-    end
-    filter(vcat(vec.(params)...)) do d
-        !(d["name"] == "linearsvc" &&
-          d["penalty"] == "l1" &&
-          d["loss"] == "hinge")
-    end
+function gridparams(m::ScikitClassifier)
+    grid = [
+        [
+            "name" => ["logistic"],
+            "alpha" => [0.001, 0.01, 0.1, 1, 5],
+            "penalty" => ["l2", "l1"]
+        ],
+        [
+            "name" => ["linearsvc"],
+            "alpha" => [0.001, 0.01, 0.1, 1, 5],
+            [
+                ["penalty" => ["l2"], "loss" => ["hinge", "squared_hinge"]],
+                ["penalty" => ["l1"], "loss" => ["squared_hinge"]]
+            ]
+        ],
+        [
+            "name" => ["svc"],
+            "alpha" => [0.001, 0.01, 0.1, 1, 5, 10, 20, 50],
+            "gamma" => [0, 0.01, 0.1, 1, 10, 100]
+        ],
+        [
+            "name" => ["mlp"],
+            "num_layers" => [1, 2],
+            "hidden_size" => [10, 100],
+            "lr" => [0.001, 0.01]
+        ]
+    ]
+    gridparams(grid)
 end
 
 function fit!(m::ScikitClassifier, x, y, w = nothing; columns = nothing)

@@ -132,7 +132,7 @@ predict_proba(m::H2oModel, x) = Array(predict_h2o(m, x).drop(columns = "predict"
 
 predict(m::H2oModel, x) = Array(predict_h2o(m, x)["predict"])
 
-function paramgrid(m::H2oModel)
+function gridparams(m::H2oModel)
     glm_comm = Dict("name" => "glm", "lambda_search" => true)
     glm_grid = Dict("alpha" => [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
     dl_comm = Dict("name" => "deeplearning", "epochs" => 100, "adaptive_rate" => true,
@@ -150,11 +150,11 @@ function paramgrid(m::H2oModel)
                         "col_sample_rate_per_tree" => 0.8)
     xgb_grid = Dict("max_depth" => [10, 20, 5], "min_rows" => [5, 10, 3], "sample_rate" => [0.6, 0.6, 0.8])
     params = []
-    append!(params, [merge(glm_comm, p) for p in paramgrid(glm_grid, zip)])
-    append!(params, [merge(gbm_comm, p) for p in paramgrid(gbm_grid, zip)])
-    append!(params, [merge(xgb_comm, p) for p in paramgrid(xgb_grid, zip)])
-    append!(params, [merge(dl_comm, p1, p2) for p1 in paramgrid(xgb_grid, zip)
-            for p2 in [paramgrid(dl_grid2)..., paramgrid(dl_grid3)...]])
+    append!(params, [merge(glm_comm, p) for p in gridparams(glm_grid, zip)])
+    append!(params, [merge(gbm_comm, p) for p in gridparams(gbm_grid, zip)])
+    append!(params, [merge(xgb_comm, p) for p in gridparams(xgb_grid, zip)])
+    append!(params, [merge(dl_comm, p1, p2) for p1 in gridparams(xgb_grid, zip)
+            for p2 in [gridparams(dl_grid2)..., gridparams(dl_grid3)...]])
     return params
 end
 

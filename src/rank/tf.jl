@@ -14,8 +14,8 @@ end
 is_classifier(::TfRanker) = false
 is_ranker(::TfRanker) = true
 
-function paramgrid(m::TfRanker)
-    grid = OrderedDict(
+function gridparams(m::TfRanker)
+    grid = [
         "horizon" => [2, 5, 10, 20, 50],
         "nlevel" => [5, 10, 20],
         "nstep" => [1000, 2000, 5000],
@@ -31,8 +31,8 @@ function paramgrid(m::TfRanker)
          "mean_squared_loss",
          "list_mle_loss",
          "approx_ndcg_loss"]
-    )
-    params = paramgrid(grid)
+    ]
+    params = gridparams(grid)
 end
 
 function fit!(m::TfRanker, x, y, w = nothing; group = nothing, columns = nothing)
