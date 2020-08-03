@@ -19,10 +19,6 @@ else
     USE_MPI=0
 fi
 
-if [ -z "$(which proxychains)" ]; then
-    alias proxychains=''
-fi
-
 if [ -z "$PYTHON" ]; then
     PYTHON=$(which python3)
 fi
@@ -34,7 +30,7 @@ if [ ! -f $BIN/vw ]; then
 fi
 
 if [ ! -f $BIN/ranklib.jar ]; then
-    proxychains wget -O $BIN/ranklib.jar https://sourceforge.net/projects/lemur/files/lemur/RankLib-2.11/RankLib-2.11.jar
+    wget -O $BIN/ranklib.jar https://sourceforge.net/projects/lemur/files/lemur/RankLib-2.11/RankLib-2.11.jar
     echo '#!/bin/bash' > $BIN/ranklib
     echo 'java -jar $(dirname $0)/ranklib.jar "$@"' >> $BIN/ranklib
     chmod +x $BIN/ranklib
@@ -51,7 +47,7 @@ if [ ! -d $CUDA ] && [ $USE_GPU == 1 ]; then
 fi
 
 if [ ! -d $BOOST ] && [ $USE_GPU == 1 ]; then
-    proxychains wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
+    wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
     tar -zxvf boost_1_66_0.tar.gz && rm boost*.tar.gz
     cd boost_1_66_0 && ./bootstrap.sh --prefix=$BOOST && ./b2 install
     cd /tmp && rm -rf boost_1_66_0

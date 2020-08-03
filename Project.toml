@@ -1,7 +1,7 @@
 name = "MLSuite"
 uuid = "fd36aebc-0777-11ea-1be3-eb1bdc5c01e1"
 authors = ["Yao Lu <luyaocns@gmail.com>"]
-version = "0.1.7"
+version = "0.1.8"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
