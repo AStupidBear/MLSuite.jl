@@ -162,7 +162,7 @@ modelhash(m::H2oModel) = hash(m.pyo)
 
 function from_h2o(hdf)
     @from h2o imports export_file
-    dst = @sprintf("/tmp/%s.csv", randstring())
+    dst = tempname() * ".csv"
     for (c, t) in hdf.types
         if occursin(r"string|enum", t)
             hdf[c] = hdf[c].gsub("\"", "|")
@@ -183,7 +183,7 @@ function to_h2o(df)
     @from h2o imports import_file
     @imports pyarrow as pa
     @imports pyarrow.parquet as pq
-    dst = mkpath(@sprintf("/tmp/%s", randstring()))
+    dst = joinpath("/dev/shm", tempname())
     npart = ceil(Int, length(df) / 20)
     df["part"] = repeat(1:20, inner = npart)[1:length(df)]
     df.reset_index(inplace = true)

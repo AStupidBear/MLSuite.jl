@@ -42,7 +42,7 @@ function to_svm(x, y, w = nothing; group = nothing)
     else
         qid = group
     end
-    dst = @sprintf("/dev/shm/%s.svmlight", randstring())
+    dst = joinpath("/dev/shm", tempname() * ".svmlight")
     x = reshape(x, size(x, 1), :)
     y, qid = vec(y), vec(qid)
     dump_svmlight_file(x, y, dst, query_id = qid, zero_based = false)

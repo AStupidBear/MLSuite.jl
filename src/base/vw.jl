@@ -73,8 +73,8 @@ function tovw(x, y = nothing, w = nothing; shuffle = false)
     y = isnothing(y) ? ones(size(x, 2)) : y
     w = isnothing(w) ? ones(size(x, 2)) : w
     if memory(x) > 1024
-        h5 = @sprintf("/dev/shm/%s.h5", randstring())
-        dst = @sprintf("/dev/shm/%s.vw", randstring())
+        h5 = joinpath("/dev/shm", tempname() * ".vw")
+        dst = joinpath("/dev/shm", tempname() * ".vw")
         h5save(h5, (x = x, y = y, w = w))
         hdf2vw = joinpath(@__DIR__, "hdf2vw.jl")
         run(`$JULIA --startup-file=no -p 10 $hdf2vw
@@ -82,7 +82,7 @@ function tovw(x, y = nothing, w = nothing; shuffle = false)
         rm(h5, force = true)
     else
         x = reshape(x, size(x, 1), :)
-        dst = @sprintf("/dev/shm/%s.vw", randstring())
+        dst = joinpath("/dev/shm", tempname() * ".vw")
         fid = open(dst, "w")
         js = shuffle ? randperm(length(y)) : 1:length(y)
         @showprogress "tovw..." for j in js

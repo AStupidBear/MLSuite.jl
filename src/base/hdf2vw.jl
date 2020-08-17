@@ -28,7 +28,7 @@ end
 
 @everywhere function tovw(x, y, w, shuffle)
     x = reshape(x, size(x, 1), :)
-    dst = @sprintf("/dev/shm/%s.vw", randstring())
+    dst = joinpath("/dev/shm", tempname() * ".vw")
     fid = open(dst, "w")
     js = shuffle ? randperm(length(y)) : 1:length(y)
     for j in js
