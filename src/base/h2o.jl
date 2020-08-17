@@ -180,16 +180,24 @@ function from_h2o(hdf)
 end
 
 function to_h2o(df)
-    @from h2o imports import_file
-    @imports pyarrow as pa
-    @imports pyarrow.parquet as pq
-    dst = joinpath("/dev/shm", tempname())
-    npart = ceil(Int, length(df) / 20)
-    df["part"] = repeat(1:20, inner = npart)[1:length(df)]
+    @imports h2o
+    dst = mkpath(joinpath("/dev/shm", tempname()))
+    ncpu = h2o.cluster().nodes[1]["nthreads"]
+    npart = ceil(Int, length(df) / ncpu)
+    df["part"] = repeat(1:ncpu, inner = npart)[1:length(df)]
     df.reset_index(inplace = true)
-    table = pa.Table.from_pandas(df, preserve_index = false)
-    pq.write_to_dataset(table, root_path = dst, partition_cols = ["part"])
-    hdf = import_file(dst)
+    try
+        @imports pyarrow as pa
+        @imports pyarrow.parquet as pq
+        table = pa.Table.from_pandas(df, preserve_index = false)
+        pq.write_to_dataset(table, root_path = dst, partition_cols = ["part"])
+    catch e
+        @imports fastparquet as pq
+        pq.write(dst, df, partition_on = ["part"], file_scheme = "hive")
+        rm(joinpath(dst, "_metadata"), force = true)
+        rm(joinpath(dst, "_common_metadata"), force = true)
+    end
+    hdf = h2o.import_file(dst)
     rm(dst, force = true, recursive = true)
     return hdf
 end

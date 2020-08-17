@@ -103,9 +103,13 @@ function dump_dai_data(x = nothing, y = nothing, w = nothing; columns = nothing)
         dfw = DataFrame(vec(w), columns = ["weight"])
     end
     df = pdhcat(dfx, dfy, dfw)
-    parquet = joinpath("/dev/shm", tempname() * ".parquet")
-    df.to_parquet(parquet)
-    return parquet
+    dst = joinpath("/dev/shm", tempname() * ".parquet")
+    try
+        df.to_parquet(dst)
+    catch e
+        df.to_parquet(dst, engine = "fastparquet", compression = "snappy")
+    end
+    return dst
 end
 
 function pyrun(str)
