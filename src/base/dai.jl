@@ -104,10 +104,10 @@ function dump_dai_data(x = nothing, y = nothing, w = nothing; columns = nothing)
     end
     df = pdhcat(dfx, dfy, dfw)
     dst = joinpath("/dev/shm", tempname() * ".parquet")
-    try
-        df.to_parquet(dst)
-    catch e
-        df.to_parquet(dst, engine = "fastparquet", compression = "snappy")
+    if Sys.ARCH == :x86_64
+        df.to_parquet(dst, engine = "auto")
+    else
+        df.to_parquet(dst, engine = "fastparquet", compression = "brotli")
     end
     return dst
 end

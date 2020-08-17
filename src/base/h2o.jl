@@ -186,12 +186,12 @@ function to_h2o(df)
     npart = ceil(Int, length(df) / ncpu)
     df["part"] = repeat(1:ncpu, inner = npart)[1:length(df)]
     df.reset_index(inplace = true)
-    try
+    if Sys.ARCH == :x86_64
         @imports pyarrow as pa
         @imports pyarrow.parquet as pq
         table = pa.Table.from_pandas(df, preserve_index = false)
         pq.write_to_dataset(table, root_path = dst, partition_cols = ["part"])
-    catch e
+    else
         @imports fastparquet as pq
         pq.write(dst, df, partition_on = ["part"], file_scheme = "hive")
         rm(joinpath(dst, "_metadata"), force = true)
