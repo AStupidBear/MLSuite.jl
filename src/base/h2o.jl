@@ -119,7 +119,6 @@ function predict_h2o(m::H2oModel, x)
     columns = split(ENV["COLS"], '|')
     df = DataFrame(pymat(x), columns = columns)
     hdf = to_h2o(df)
-    pred = from_h2o(pyo.predict(hdf))
     index = vec(hdf["index"].as_data_frame().values)
     pred = from_h2o(pyo.predict(hdf)).set_index(index).sort_index()
     @imports h2o
