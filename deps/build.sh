@@ -55,6 +55,9 @@ fi
 
 if [ ! -f $LGBM/bin/lightgbm ]; then
     git clone --recursive https://github.com/Microsoft/LightGBM
+    find LightGBM -name 'rank_metric.hpp' | xargs -n 1 sed -i 's/ \* inverse_max_dcgs_\[i\]\[j\]//g'
+    find LightGBM -name 'rank_objective.hpp' | xargs -n 1 sed -i 's/paired_discount \* inverse_max_dcg/paired_discount/g'
+    find LightGBM -name 'dcg_calculator.cpp' | xargs -n 1 sed -i 's/1.0 \/ std::log2(2.0 + i)/1.0/g'
     cd LightGBM && mkdir -p build && cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=$LGBM \
             -DUSE_MPI=$USE_MPI \
