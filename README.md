@@ -1,6 +1,6 @@
 # Large Scale Machine Learning Suite for Julia
 
-[![Build Status](https://travis-ci.com/AStupidBear/MLSuite.jl.svg?branch=master)](https://travis-ci.com/AStupidBear/MLSuite.jl)
+[![Build Status](https://github.com/AStupidBear/MLSuite.jl/workflows/CI/badge.svg)](https://github.com/AStupidBear/MLSuite.jl/actions)
 [![Coverage](https://codecov.io/gh/AStupidBear/MLSuite.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/AStupidBear/MLSuite.jl)
 
 ## Installation
