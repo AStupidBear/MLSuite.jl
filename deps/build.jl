@@ -4,7 +4,7 @@ using BinDeps: generate_steps, getallproviders, lower, PackageManager
 
 !Sys.islinux() && exit()
 
-for pkg in ["scikit-learn", "pandas", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", "thundersvm", "tensorflow-ranking", "tensorflow", "treelite"]
+for pkg in ["scikit-learn", "pandas", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", "thundersvm", "tensorflow-ranking", "tensorflow", "treelite", "treelite_runtime"]
     # "catboost==0.16.5"
     try
         run(`$python -m pip install $pkg`)
