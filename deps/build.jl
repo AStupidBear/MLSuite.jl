@@ -4,12 +4,6 @@ using BinDeps: generate_steps, getallproviders, lower, PackageManager
 
 !Sys.islinux() && exit()
 
-if conda && Conda.version("python") >= v"3.7"
-    # treelite does not support python3.7
-    Conda.add("python=3.6")
-    Pkg.build("PyCall")
-end
-
 for pkg in ["scikit-learn", "pandas", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", "thundersvm", "tensorflow-ranking", "tensorflow", "treelite"]
     # "catboost==0.16.5"
     try
