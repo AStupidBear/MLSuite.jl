@@ -79,7 +79,7 @@ for binary in [true, false], model in classifiers
     ŷ = MLSuite.predict(model, x)
     prob = MLSuite.predict_proba(model, x)
     acc = accuracy_score(vec(ŷ), vec(y′))
-    @assert acc > 0.6
+    @test acc > 0.6
 end
 
 rankers = [
