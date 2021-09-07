@@ -63,6 +63,7 @@ function fit!(m::LgbmModel, x, y, w = nothing; columns = nothing)
     push!(args, "reg_lambda=$reg_lambda")
     push!(args, "subsample=$subsample")
     push!(args, "colsample_bytree=$colsample_bytree")
+    push!(args, "max_bin=$(max_bin - 1)")
     if isnothing(Sys.which("mpiexec"))
         run(`$LIGHTGBM $args`)
     else

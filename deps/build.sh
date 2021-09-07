@@ -59,7 +59,8 @@ if [ ! -f $LGBM/bin/lightgbm ]; then
     find LightGBM -name 'rank_objective.hpp' | xargs -n 1 sed -i 's/paired_discount \* inverse_max_dcg/paired_discount/g'
     find LightGBM -name 'dcg_calculator.cpp' | xargs -n 1 sed -i 's/1.0 \/ std::log2(2.0 + i)/1.0/g'
     cd LightGBM && mkdir -p build && cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=$LGBM \
+    CMAKE=$(which cmake3 &> /dev/null && echo cmake3 || echo cmake)
+    $CMAKE .. -DCMAKE_INSTALL_PREFIX=$LGBM \
             -DUSE_MPI=$USE_MPI \
             -DUSE_GPU=$USE_GPU \
             -DBOOST_LIBRARYDIR=$BOOST/lib/ \
@@ -67,7 +68,7 @@ if [ ! -f $LGBM/bin/lightgbm ]; then
             -DOpenCL_LIBRARY=$CUDA/lib64/libOpenCL.so \
             -DOpenCL_INCLUDE_DIR=$CUDA/include/
     make -j4 && make install && cd ..
-    ln -s $LGBM/bin/lightgbm $BIN/lightgbm
+    bash -c "cd $BIN && ln -sfn ../lightgbm/bin/lightgbm lightgbm"
     cd python-package && $PYTHON setup.py install --precompile -O2
     cd /tmp && rm -rf LightGBM
 fi

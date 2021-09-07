@@ -114,7 +114,7 @@ function visualize(m::VWModel, columns)
         df["FeatureName"] = map(df["FeatureName"]) do x
             join([mapper[split(c, '^')[end]] for c in split(x, '*')], '*')
         end
-        df["RelScore"] = 100 * df["Weight"] / df["Weight"].abs().max()
+        df["RelScore"] = 100 * df["Weight"].div(df["Weight"].abs().max())
         df.sort_values("Weight", inplace = true)
         df.to_csv("audit.csv", index = false, encoding = "gbk")
     end

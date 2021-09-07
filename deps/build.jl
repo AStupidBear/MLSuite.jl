@@ -32,9 +32,9 @@ cmake = library_dependency("cmake")
 gcc = library_dependency("gcc")
 jre = library_dependency("jre")
 
-common = Dict("wget" => wget, "git" => git, "make" => make, "cmake" => cmake)
-provides(AptGet, Dict(common..., "g++" => gcc, "default-jre" => jre))
-provides(Yum, Dict(common..., "gcc-c++" => gcc,  "java-1.8.0-openjdk-headless" => jre))
+common = Dict("wget" => wget, "git" => git, "make" => make)
+provides(AptGet, Dict(common..., "g++" => gcc, "default-jre" => jre, "cmake" => cmake))
+provides(Yum, Dict(common..., "gcc-c++" => gcc,  "java-1.8.0-openjdk-headless" => jre, "cmake3" => cmake))
 
 for dep in bindeps_context.deps
     dp, opts = getallproviders(dep, PackageManager)[1]
