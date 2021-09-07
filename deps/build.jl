@@ -10,7 +10,8 @@ if conda && Conda.version("python") >= v"3.7"
     Pkg.build("PyCall")
 end
 
-for pkg in ["scikit-learn", "pandas==0.25.3", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", "thundersvm", "tensorflow-ranking", "tensorflow", "catboost==0.16.5", "treelite"]
+for pkg in ["scikit-learn", "pandas", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", "thundersvm", "tensorflow-ranking", "tensorflow", "treelite"]
+    # "catboost==0.16.5"
     try
         run(`$python -m pip install $pkg`)
     catch e

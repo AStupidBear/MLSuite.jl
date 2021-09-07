@@ -32,7 +32,7 @@ regressors = [
     H2oRegressor(name = "autoglm"),
     GbmRegressor(name = "lightgbm"),
     GbmRegressor(name = "xgboost"),
-    GbmRegressor(name = "catboost"),
+    # GbmRegressor(name = "catboost"),
     LgbmRegressor(warm_start = false),
     LgbmRegressor(warm_start = true)
 ]
@@ -67,7 +67,7 @@ classifiers = [
     H2oClassifier(name = "automl"),
     GbmClassifier(name = "lightgbm"),
     GbmClassifier(name = "xgboost"),
-    GbmClassifier(name = "catboost"),
+    # GbmClassifier(name = "catboost"),
     LgbmClassifier()
 ]
 
@@ -113,7 +113,7 @@ rankers = [
     RanklibRanker(ranker = 8),
     GbmRanker(name = "lightgbm", objective = "rank:ndcg"),
     GbmRanker(name = "xgboost", objective = "rank:pairwise"),
-    GbmRanker(name = "catboost", objective = "rank:pairlogit")
+    # GbmRanker(name = "catboost", objective = "rank:pairlogit")
 ]
 
 for model in rankers
