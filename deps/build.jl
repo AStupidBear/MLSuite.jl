@@ -4,15 +4,6 @@ using BinDeps: generate_steps, getallproviders, lower, PackageManager
 
 !Sys.islinux() && exit()
 
-for pkg in ["scikit-learn", "pandas", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", "thundersvm", "tensorflow-ranking", "tensorflow", "treelite", "treelite_runtime"]
-    # "catboost==0.16.5"
-    try
-        run(`$python -m pip install $pkg`)
-    catch e
-        println(e)
-    end
-end
-
 if isnothing(Sys.which("sudo")) # in docker
     try run(`apt update`) catch end
     try run(`yum update`) catch end
@@ -38,6 +29,16 @@ for dep in bindeps_context.deps
     insert!(cmd.exec, i + 1, "-y")
     println(cmd)
     try run(cmd) catch end
+end
+
+for pkg in ["scikit-learn", "pandas", "h2o", "lightgbm",  "xgboost", "unidecode", "pyarrow", 
+            "thundersvm", "tensorflow-ranking", "tensorflow", "treelite", "treelite_runtime"]
+    # "catboost==0.16.5"
+    try
+        run(`$python -m pip install $pkg`)
+    catch e
+        println(e)
+    end
 end
 
 buildsh = joinpath(@__DIR__, "build.sh")
